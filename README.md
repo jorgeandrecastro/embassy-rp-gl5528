@@ -12,9 +12,9 @@ Driver async `no_std` minimaliste pour la photorésistance **GL5528** (LDR)  tes
 # 📄 Historique et Compatibilité
 Ce projet suit de près l'évolution de l'écosystème Embassy pour garantir le support des nouvelles puces comme la RP2350.
 
-Dernière version stable conseillée : Il est fortement recommandé d'utiliser la version 0.1.2 (ou supérieure). Les versions précédentes étaient trop rigides sur les dépendances et peuvent causer des conflits de compilation.
+Dernière version stable conseillée : Il est fortement recommandé d'utiliser la version 0.1.3(ou supérieure). Les versions précédentes étaient trop rigides sur les dépendances et peuvent causer des conflits de compilation.
 
-Plage de compatibilité : Ce driver est conçu pour fonctionner avec embassy-rp de la version v0.4.0 jusqu'à la v0.10.0+.
+**Important : Cette crate est compatible avec une large plage de versions (v0.4.0 à v0.10.0+).** Assurez-vous que votre projet utilise une version d' embassy-rp incluse dans cette plage.
 
 Confiance et Évolution : Je fais pleinement confiance aux développeurs d'Embassy pour la stabilité de leurs APIs. Cependant, le monde de l'embarqué bouge vite : si vous testez ce driver et rencontrez le moindre défaut ou problème de compilation, n'hésitez pas à ouvrir une Issue GitHub. Votre aide est précieuse pour améliorer cet outil !
 
@@ -57,11 +57,11 @@ GND
 
 Ajoutez la dépendance dans votre `Cargo.toml` svp régardez Features par défaut la feature est faite pour la pico 2040 :
 
-**Important : Cette crate est conçue pour fonctionner avec Embassy v0.6 Assurez-vous que votre projet principal utilise la même version pour éviter les conflits de types!!**
+**Important : Cette crate est compatible avec une large plage de versions (v0.4.0 à v0.10.0+). Assurez-vous que votre projet utilise une version d' embassy-rp incluse dans cette plage.**
 
 ```toml
 [dependencies.embassy-rp-gl5528]
-version = "0.1.2"
+version = "0.1.3"
 ```
 
 ---
@@ -70,18 +70,19 @@ version = "0.1.2"
 Par défaut, la crate utilise la feature rp2040. Si vous utilisez un Raspberry Pi Pico 2 ou une autre carte basée sur le RP2350, vous devez désactiver les features par défaut et activer rp235x.
 
 **Pour le RP2040 (Pico 1)**
-
+**Feature rp2040 activée par défaut**
 ````
 [dependencies.embassy-rp-gl5528]
-version = "0.1.2"
-Feature rp2040 activée par défaut
+version = "0.1.3"
 ````
+
 
 **Pour le RP235x (Pico 2)**
 Si vous utilisez la nouvelle Pico 2, désactivez les fonctionnalités par défaut (qui ciblent la RP2040) et activez la feature rp235x
+
 ````
 [dependencies]
-embassy-rp-gl5528 = { version = "0.1.2", default-features = false, features = ["rp235x"] }
+embassy-rp-gl5528 = { version = "0.1.3", default-features = false, features = ["rp235x"] }
 ````
 
 ## Utilisation
@@ -111,7 +112,8 @@ async fn main(_spawner: Spawner) {
 
     loop {
         let raw = sensor.read_raw().await;
-        // raw : 0 (obscurité) → 4095 (pleine lumière)
+        // raw : 0 (obscurité) → 4095 (pleine lumière) ou 16383 sur RP235x (14 bits )
+        
     }
 }
 ```
@@ -120,6 +122,9 @@ async fn main(_spawner: Spawner) {
 
 ```rust
 let voltage = (raw as f32 / 4095.0) * 3.3;
+
+// Sur RP235x (14 bits)
+let voltage = (raw as f32 / 16383.0) * 3.3;
 ```
 
 ### Conversion valeur brute → résistance LDR
@@ -139,19 +144,24 @@ let r_ldr = 10_000.0 * ((3.3 - voltage) / voltage);
 
 Crée le driver en prenant possession de l'ADC Embassy et du canal correspondant.
 
-### `async fn read_raw(&mut self) -> u16`
+### async fn read_raw(&mut self) -> u16  
+Lit la valeur ADC brute du capteur.
 
-Lit la valeur ADC brute (12 bits, `0..=4095`). Retourne `0` en cas d'erreur.
+- RP2040 : 12 bits (0..=4095).
+
+- RP235x : 14 bits (0..=16383).
+
+- Retourne 0 en cas d'erreur ADC.
 
 ---
 
 ## Compatibilité
 
-| Dépendance    | Version |
-|---------------|---------|
-| `embassy-rp`  | 0.6     |
-| Rust edition  | 2024    |
-| `no_std`      |  ✓      |
+| Dépendance    | Version    |
+|---------------|------------|
+| `embassy-rp`  | 0.4 à 0.10+|
+| Rust edition  | 2024       |
+| `no_std`      |  ✓         |
 
 ---
 

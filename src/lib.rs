@@ -3,7 +3,7 @@
 //! # embassy-rp-gl5528
 //!
 //! Driver async `no_std` minimaliste pour la photorésistance **GL5528** (LDR)
-//! sur microcontrôleur RP2040, basé sur le framework [Embassy](https://embassy.dev).
+//! sur microcontrôleur RP2040 et RP235x, basé sur le framework [Embassy](https://embassy.dev).
 //!
 //! ## Description du composant
 //!
@@ -66,10 +66,10 @@
 //!
 //! ## Calcul de luminosité
 //!
-//! La valeur brute ADC (12 bits, 0–4095) peut être convertie en tension :
+//! La valeur brute ADC peut être convertie en tension (ex: 12 bits sur RP2040, 14 bits sur RP235x) ::
 //!
 //! ```text
-//! V = raw × 3.3 / 4095
+//! V = raw × 3.3 / MAX (4095 ou 16383)
 //! ```
 //!
 //! La résistance de la LDR s'en déduit (diviseur de tension, R_pull = 10 kΩ) :
@@ -80,13 +80,13 @@
 //!
 //! ## Caractéristiques
 //!
-//! | Paramètre              | Valeur                    |
-//! |------------------------|---------------------------|
-//! | Tension d'alimentation | 3,3 V (RP2040)            |
-//! | Résolution ADC         | 12 bits (0–4095)          |
-//! | Résistance lumière     | ~1 kΩ @ 10 lux            |
-//! | Résistance obscurité   | ~1 MΩ minimum             |
-//! | Résistance de tirage   | 10 kΩ recommandée         |
+//! | Paramètre              | Valeur                                |
+//! |------------------------|-------------------------------------- |
+//! | Tension d'alimentation | 3,3 V (RP2040 / RP235x)               |
+//! | Résolution ADC         | 12 bits (0–4095) et 14 bits sur RP235x|
+//! | Résistance lumière     | ~1 kΩ @ 10 lux                        |
+//! | Résistance obscurité   | ~1 MΩ minimum                         |
+//! | Résistance de tirage   | 10 kΩ recommandée                     |
 //!
 //! ## `no_std`
 //!
@@ -141,16 +141,14 @@ impl<'d> Gl5528<'d> {
 
     /// Lit la valeur brute du convertisseur ADC.
     ///
-    /// Retourne un entier non signé 16 bits dans l'intervalle `0..=4095`
-    /// (résolution 12 bits du RP2040). Une valeur élevée correspond à une
-    /// forte luminosité ; une valeur faible correspond à une faible luminosité
-    /// ou à l'obscurité.
+    /// Retourne la valeur brute lue (ex: `0..=4095` sur RP2040 ou `0..=16383` sur RP235x).
+    /// Une valeur élevée correspond à une forte luminosité.
     ///
     /// En cas d'erreur ADC, la valeur `0` est retournée.
     ///
     /// # Retour
     ///
-    /// * `u16` — Valeur ADC brute, entre `0` (obscurité) et `4095` (lumière max).
+    ///* u16 — Valeur ADC brute (le maximum dépend de la puce : 4095 ou 16383).
     ///
     /// # Exemple
     ///
@@ -160,16 +158,17 @@ impl<'d> Gl5528<'d> {
     /// let raw: u16 = sensor.read_raw().await;
     ///
     /// // Conversion en tension (V)
-    /// let voltage = raw as f32 * 3.3 / 4095.0;
+    /// let voltage = raw as f32 * 3.3 / 4095.0; // Utiliser 16383.0 sur RP235x
     ///
     /// // Conversion en résistance LDR (kΩ), avec R_pull = 10 kΩ
     /// if voltage < 3.3 {
     ///     // Si LDR est au 3.3V et R_pull (10k) au GND :
-  ///     let r_ldr = 10.0 * (3.3 - voltage) / voltage;
+    ///     let r_ldr = 10.0 * (3.3 - voltage) / voltage;
     ///     let _ = r_ldr;
     /// }
     /// # }
     /// ```
+
     #[inline]
     pub async fn read_raw(&mut self) -> u16 {
         self.adc.read(&mut self.channel).await.unwrap_or(0)
