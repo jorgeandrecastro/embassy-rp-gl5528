@@ -49,7 +49,7 @@ Ajoutez la dépendance dans votre `Cargo.toml` svp régardez Features par défau
 
 ```toml
 [dependencies.embassy-rp-gl5528]
-version = "0.1.0"
+version = "0.1.1"
 ```
 
 ---
@@ -61,14 +61,14 @@ Par défaut, la crate utilise la feature rp2040. Si vous utilisez un Raspberry P
 
 ````
 [dependencies.embassy-rp-gl5528]
-version = "0.1.0"
+version = "0.1.1"
 Feature rp2040 activée par défaut
 ````
 
 **Pour le RP235x (Pico 2)**
 ````
 [dependencies.embassy-rp-gl5528]
-version = "0.1.0"
+version = "0.1.1"
 default-features = false
 features = ["rp235x"]
 ````
@@ -143,6 +143,118 @@ Lit la valeur ADC brute (12 bits, `0..=4095`). Retourne `0` en cas d'erreur.
 | `no_std`      |  ✓      |
 
 ---
+
+
+# Exemple Pico 2040 , Affichage avec la Oled :
+ Utilise [`embassy-ssd1306`](https://crates.io/crates/embassy-ssd1306)  et [`sigmoid-q15`](https://crates.io/crates/sigmoid-q15)
+
+````rust 
+#![no_std]
+#![no_main]
+
+use cortex_m_rt as _;
+use embassy_executor::Spawner;
+use embassy_rp::i2c::{Config as I2cConfig, I2c, Async};
+use embassy_time::{Timer, Duration}; 
+use {panic_halt as _, embassy_rp as _};
+
+use embassy_ssd1306::Ssd1306;
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::mutex::Mutex;
+use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
+
+use embassy_rp::bind_interrupts;
+use embassy_rp::peripherals::I2C0; 
+use rp2040_linker as _; 
+
+// GPIO et ADC
+use embassy_rp::gpio::{Output, Level, Pull};
+use embassy_rp::adc::{Adc, Config as AdcConfig, Channel, InterruptHandler as AdcInterruptHandler};
+use embassy_rp::i2c::InterruptHandler as I2cInterruptHandler;
+
+// Lumière et sigmoide 
+use sigmoid_q15::sigmoid_q15;
+use embassy_rp_gl5528::Gl5528; 
+
+bind_interrupts!(struct Irqs {
+    I2C0_IRQ => I2cInterruptHandler<I2C0>;
+    ADC_IRQ_FIFO => AdcInterruptHandler;
+});
+
+#[embassy_executor::task]
+async fn system_task(
+    mut oled: Ssd1306<I2cDevice<'static, NoopRawMutex, I2c<'static, I2C0, Async>>>,
+    mut light_sensor: Gl5528<'static>,
+) {
+    if let Ok(_) = oled.init().await {
+        oled.clear();
+        let _ = oled.flush().await;
+    }
+
+    let test_points: [i16; 5] = [i16::MIN, -16384, 0, 16384, i16::MAX];
+    let mut idx = 0;
+
+    loop {
+        oled.clear();
+        oled.draw_rect(0, 0, 127, 63, true);
+
+        let x_input = test_points[idx];
+        let y_output = sigmoid_q15(x_input);
+
+        oled.draw_str(10, 1, b"Sigmoid Q15");
+        oled.draw_str(10, 3, b"In :");
+        oled.draw_i16(50, 3, x_input);
+        oled.draw_str(10, 5, b"Out:");
+        oled.draw_i16(50, 5, y_output);
+
+        // UTILISATION DU CAPTEUR 
+        let lux_raw = light_sensor.read_raw().await;
+        
+        oled.draw_str(10, 7, b"Lumiere:");
+        if lux_raw > 2000 {
+            oled.draw_str(75, 7, b"Light");
+        } else {
+            oled.draw_str(75, 7, b"Dark");
+        }
+
+        let _ = oled.flush().await;
+        idx = (idx + 1) % test_points.len();
+        
+        Timer::after(Duration::from_secs(2)).await;
+    }
+}
+
+#[embassy_executor::main]
+async fn main(spawner: Spawner) {
+    let p = embassy_rp::init(Default::default());
+    
+    // I2C & OLED
+    let mut i2c_config = I2cConfig::default();
+    i2c_config.frequency = 400_000; 
+    let i2c_bus = I2c::new_async(p.I2C0, p.PIN_5, p.PIN_4, Irqs, i2c_config);
+
+    static I2C_BUS: static_cell::StaticCell<Mutex<NoopRawMutex, I2c<'static, I2C0, Async>>> = static_cell::StaticCell::new();
+    let i2c_mutex = I2C_BUS.init(Mutex::new(i2c_bus));
+
+    let i2c_dev_oled = I2cDevice::new(i2c_mutex);
+    let oled = Ssd1306::new(i2c_dev_oled, 0x3C);
+    let mut led = Output::new(p.PIN_25, Level::Low);
+
+    // ADC & CAPTEUR (VIA TA CRATE)
+    let adc = Adc::new(p.ADC, Irqs, AdcConfig::default());
+    let p26 = Channel::new_pin(p.PIN_26, Pull::None);
+
+    let light_sensor = Gl5528::new(adc, p26);
+    
+    spawner.spawn(system_task(oled, light_sensor)).unwrap();
+    //blink led pico pin 25
+    loop {
+        led.toggle();
+        Timer::after_millis(200).await;
+    };
+}
+
+````
 
 ## Licence
 
