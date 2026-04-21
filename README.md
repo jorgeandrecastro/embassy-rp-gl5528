@@ -8,6 +8,18 @@ Driver async `no_std` minimaliste pour la photorésistance **GL5528** (LDR)  tes
 
 ---
 
+
+# 📄 Historique et Compatibilité
+Ce projet suit de près l'évolution de l'écosystème Embassy pour garantir le support des nouvelles puces comme la RP2350.
+
+Dernière version stable conseillée : Il est fortement recommandé d'utiliser la version 0.1.2 (ou supérieure). Les versions précédentes étaient trop rigides sur les dépendances et peuvent causer des conflits de compilation.
+
+Plage de compatibilité : Ce driver est conçu pour fonctionner avec embassy-rp de la version v0.4.0 jusqu'à la v0.10.0+.
+
+Confiance et Évolution : Je fais pleinement confiance aux développeurs d'Embassy pour la stabilité de leurs APIs. Cependant, le monde de l'embarqué bouge vite : si vous testez ce driver et rencontrez le moindre défaut ou problème de compilation, n'hésitez pas à ouvrir une Issue GitHub. Votre aide est précieuse pour améliorer cet outil !
+
+Changelog : Pour voir le détail des changements et l'évolution du support Pico 2, consultez le fichier CHANGELOG.md.
+
 ## Description
 
 La **GL5528** est une photorésistance (*Light Dependent Resistor*) dont la résistance varie selon l'intensité lumineuse ambiante :
@@ -49,7 +61,7 @@ Ajoutez la dépendance dans votre `Cargo.toml` svp régardez Features par défau
 
 ```toml
 [dependencies.embassy-rp-gl5528]
-version = "0.1.1"
+version = "0.1.2"
 ```
 
 ---
@@ -61,16 +73,15 @@ Par défaut, la crate utilise la feature rp2040. Si vous utilisez un Raspberry P
 
 ````
 [dependencies.embassy-rp-gl5528]
-version = "0.1.1"
+version = "0.1.2"
 Feature rp2040 activée par défaut
 ````
 
 **Pour le RP235x (Pico 2)**
+Si vous utilisez la nouvelle Pico 2, désactivez les fonctionnalités par défaut (qui ciblent la RP2040) et activez la feature rp235x
 ````
-[dependencies.embassy-rp-gl5528]
-version = "0.1.1"
-default-features = false
-features = ["rp235x"]
+[dependencies]
+embassy-rp-gl5528 = { version = "0.1.2", default-features = false, features = ["rp235x"] }
 ````
 
 ## Utilisation
