@@ -1,0 +1,49 @@
+[package]
+edition = "2024"
+name = "embassy-rp-gl5528"
+version = "0.1.0"
+authors = ["Jorge Andre Castro <georgeandrec@gmail.com>"]
+build = false
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
+description = "Driver async no_std minimaliste pour la photorésistance GL5528 via Embassy sur RP2040."
+documentation = "https://docs.rs/embassy-rp-gl5528"
+readme = "README.md"
+keywords = [
+    "embassy",
+    "gl5528",
+    "ldr",
+    "photoresistor",
+    "no-std",
+]
+categories = [
+    "embedded",
+    "no-std",
+    "hardware-support",
+]
+license = "GPL-2.0-or-later"
+repository = "https://github.com/jorgeandrecastro/embassy-rp-gl5528"
+
+[lib]
+name = "embassy_rp_gl5528"
+path = "src/lib.rs"
+
+[dependencies.embassy-rp]
+version = "0.6"
+features = ["unstable-pac"]
+[features]
+# On crée les features pour ta crate qui vont activer celles d'embassy-rp
+default = ["rp2040"]
+# On ajuste les noms ici pour correspondre aux features internes d'embassy-rp
+rp2040 = ["embassy-rp/rp2040"]
+rp235x = ["embassy-rp/_rp235x"]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
