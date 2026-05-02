@@ -295,7 +295,7 @@ dependencies = [
 
 [[package]]
 name = "embassy-rp-gl5528"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "embassy-rp",
 ]

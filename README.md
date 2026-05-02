@@ -69,7 +69,7 @@ Ajoutez la dépendance dans votre `Cargo.toml` svp régardez Features par défau
 
 ```toml
 [dependencies.embassy-rp-gl5528]
-version = "0.2.0"
+version = "0.2.1"
 ```
 
 ---
@@ -81,7 +81,7 @@ Par défaut, la crate utilise la feature rp2040. Si vous utilisez un Raspberry P
 **Feature rp2040 activée par défaut**
 ````
 [dependencies.embassy-rp-gl5528]
-version = "0.2.0"
+version = "0.2.1"
 ````
 
 
@@ -90,7 +90,7 @@ Si vous utilisez la nouvelle Pico 2, désactivez les fonctionnalités par défau
 
 ````
 [dependencies]
-embassy-rp-gl5528 = { version = "0.2.0", default-features = false, features = ["rp235x"] }
+embassy-rp-gl5528 = { version = "0.2.1", default-features = false, features = ["rp235x"] }
 ````
 
 ## Utilisation

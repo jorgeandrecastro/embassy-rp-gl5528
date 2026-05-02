@@ -2,6 +2,20 @@
 
 Toutes les modifications notables de ce projet seront documentées dans ce fichier.
 
+# [0.2.0] - 2026-05-02
+
+- Remplacement des plages de compatibilité par des versions explicites afin d’assurer une meilleure stabilité et reproductibilité des builds.
+
+### Dépendances
+
+```toml
+[dependencies.embassy-rp]
+version = "0.10"
+features = ["unstable-pac"]
+
+```
+
+
 # [0.1.3] - 2026-04-21
 ### Changements
 - **Refonte complète du README** : Détails et doc plus claire .
