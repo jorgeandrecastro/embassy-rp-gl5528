@@ -12,11 +12,21 @@ Driver async `no_std` minimaliste pour la photorésistance **GL5528** (LDR)  tes
 # 📄 Historique et Compatibilité
 Ce projet suit de près l'évolution de l'écosystème Embassy pour garantir le support des nouvelles puces comme la RP2350.
 
-Dernière version stable conseillée : Il est fortement recommandé d'utiliser la version 0.1.3(ou supérieure). Les versions précédentes étaient trop rigides sur les dépendances et peuvent causer des conflits de compilation.
+## Update v0.2.0
 
-**Important : Cette crate est compatible avec une large plage de versions (v0.4.0 à v0.10.0+).** Assurez-vous que votre projet utilise une version d' embassy-rp incluse dans cette plage.
+- Remplacement des plages de compatibilité par des versions explicites afin d’assurer une meilleure stabilité et reproductibilité des builds.
 
-Confiance et Évolution : Je fais pleinement confiance aux développeurs d'Embassy pour la stabilité de leurs APIs. Cependant, le monde de l'embarqué bouge vite : si vous testez ce driver et rencontrez le moindre défaut ou problème de compilation, n'hésitez pas à ouvrir une Issue GitHub. Votre aide est précieuse pour améliorer cet outil !
+### Dépendances
+
+```toml
+[dependencies.embassy-rp]
+version = "0.10"
+features = ["unstable-pac"]
+
+```
+
+Dernière version stable conseillée : Il est fortement recommandé d'utiliser la version 0.2.0(ou supérieure). Les versions précédentes étaient larges sur les dépendances et peuvent causer des conflits de compilation.
+
 
 Changelog : Pour voir le détail des changements et l'évolution du support Pico 2, consultez le fichier CHANGELOG.md.
 
@@ -57,11 +67,9 @@ GND
 
 Ajoutez la dépendance dans votre `Cargo.toml` svp régardez Features par défaut la feature est faite pour la pico 2040 :
 
-**Important : Cette crate est compatible avec une large plage de versions (v0.4.0 à v0.10.0+). Assurez-vous que votre projet utilise une version d' embassy-rp incluse dans cette plage.**
-
 ```toml
 [dependencies.embassy-rp-gl5528]
-version = "0.1.3"
+version = "0.2.0"
 ```
 
 ---
@@ -73,7 +81,7 @@ Par défaut, la crate utilise la feature rp2040. Si vous utilisez un Raspberry P
 **Feature rp2040 activée par défaut**
 ````
 [dependencies.embassy-rp-gl5528]
-version = "0.1.3"
+version = "0.2.0"
 ````
 
 
@@ -82,7 +90,7 @@ Si vous utilisez la nouvelle Pico 2, désactivez les fonctionnalités par défau
 
 ````
 [dependencies]
-embassy-rp-gl5528 = { version = "0.1.3", default-features = false, features = ["rp235x"] }
+embassy-rp-gl5528 = { version = "0.2.0", default-features = false, features = ["rp235x"] }
 ````
 
 ## Utilisation
@@ -159,7 +167,7 @@ Lit la valeur ADC brute du capteur.
 
 | Dépendance    | Version    |
 |---------------|------------|
-| `embassy-rp`  | 0.4 à 0.10+|
+| `embassy-rp`  | 0.10       |
 | Rust edition  | 2024       |
 | `no_std`      |  ✓         |
 
